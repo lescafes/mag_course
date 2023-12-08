@@ -1,0 +1,133 @@
+%6.1.1  	一个载流环在真空中的磁场分布函数
+输入载流圆环的半径、载流线圈Z平面中心坐标、观察者平面，函数返回得到该平面的磁场值
+function [Bx,By,Bz]=loop(Rh,zc,zm)
+ 
+mu0 = 4* pi* 1e-7; % 真空磁导率
+I0 = 10.0; %Rh = 30; % 圆环半径、电流
+C0 = mu0 /( 4* pi) * I0; % 组合常数
+NGx = 51; NGy = 51; % 设定观测点网格数
+x = linspace( -100,100,51) ; % 设定观测点范围
+y = x; z = y;
+Nh = 20; % 电流环分段数
+theta0 = linspace( 0,2* pi,Nh + 1) ; % 环的圆周角分段
+theta1 = theta0( 1: Nh) ;
+x1 = Rh * cos ( theta1 ) ; y1 = Rh * sin( theta1) ; % 环各段的向量的起点坐标 y1，z1
+theta2 = theta0( 2: Nh + 1) ;
+x2 = Rh * cos ( theta2 ) ; y2 = Rh * sin( theta2) ; % 环各段的向量的终点坐标 y2，z2
+dlx = x2-x1; dly = y2 - y1; dlz = 0; % 计算环各段向量 dl 的三个长度分量
+%xc = 0; 
+yc = ( y2 + y1) /2; xc = ( x2 + x1) /2; %计算环各段向量中点的三个坐标分量
+for i = 1: NGy% 循环计算各网格点上的 B( x，y) 值
+for j = 1: NGx
+rx = x( j) - xc; ry = y( i) - yc; rz = zm - zc; % 观测点在 z = 0 平面上
+%rx =xm - xc; ry = y( i) - yc; rz = z(j) - zc;          % 观测点在 x = xm 平面上
+r3 = sqrt( rx.^2 + ry.^2 + rz.^2).^3; % 计算 r^3
+dlXr_x = dly.* rz - dlz.* ry; % 计算叉乘积
+dlXr_y = dlz.* rx - dlx.* rz;
+dlXr_z = dlx.* ry - dly.* rx;
+Bx(i,j) = sum( C0* dlXr_x./r3) ; % 把环各段产生的磁场分量累加
+By(i,j) = sum( C0* dlXr_y./r3) ;
+Bz(i,j) = sum( C0* dlXr_z./r3) ;
+end
+end
+end
+%6.1.2  	叠加原理
+clear all;
+M=51;
+x1=linspace( -100,100,M);
+y1=linspace( -100,100,M);
+z1=linspace( -100,100,M);
+ 
+figure;
+%18圆环计算磁场分布
+setz=2;
+[Bx1,By1,Bz1]=loop(22,-1,setz);[Bx2,By2,Bz2]=loop(26,-1,setz);[Bx3,By3,Bz3]=loop(30,-1,setz);
+[Bx4,By4,Bz4]=loop(34,-1,setz);[Bx5,By5,Bz5]=loop(38,-1,setz);[Bx6,By6,Bz6]=loop(42,-1,setz);
+[Bx7,By7,Bz7]=loop(46,-1,setz);[Bx8,By8,Bz8]=loop(50,-1,setz);[Bx9,By9,Bz9]=loop(54,-1,setz);
+[Bx11,By11,Bz11]=loop(22,-6,setz);[Bx22,By22,Bz22]=loop(26,-6,setz);[Bx33,By33,Bz33]=loop(30,-6,setz);
+[Bx44,By44,Bz44]=loop(34,-6,setz);[Bx55,By55,Bz55]=loop(38,-6,setz);[Bx66,By66,Bz66]=loop(42,-6,setz);
+[Bx77,By77,Bz77]=loop(46,-6,setz);[Bx88,By88,Bz88]=loop(50,-6,setz);[Bx99,By99,Bz99]=loop(54,-6,setz);
+%叠加原理
+allBx1=Bx1+Bx2+Bx3+Bx4+Bx5+Bx6+Bx7+Bx8+Bx9+Bx11+Bx22+Bx33+Bx44+Bx55+Bx66+Bx77+Bx88+Bx99;
+allBy1=By1+By2+By3+By4+By5+By6+By7+By8+By9+By11+By22+By33+By44+By55+By66+By77+By88+By99;
+allBz1=Bz1+Bz2+Bz3+Bz4+Bz5+Bz6+Bz7+Bz8+Bz9+Bz11+Bz22+Bz33+Bz44+Bz55+Bz66+Bz77+Bz88+Bz99;
+ 
+%绘制磁场分布矢量图
+  for m=1:M
+    z1(m,:)=setz; 
+  end
+subplot(1,2,1)
+ quiver3( x1,y1,z1,allBx1,allBy1,allBz1,5) ;
+axis equal
+ hold on
+ z=rand(1,459);
+t=0:2*pi/50:2*pi;
+z(1,:)=-1;
+%绘制线圈
+y=[(15+2)*sin(t),(15+2+4)*sin(t),(15+2+8)*sin(t),(15+2+12)*sin(t),(15+2+16)*sin(t),(15++2+20)*sin(t),(15+2+24)*sin(t),(15+2+28)*sin(t),(15+2+32)*sin(t)];
+x=[(15+2)*cos(t),(15+2+4)*cos(t),(15+2+8)*cos(t),(15+2+12)*cos(t),(15+2+16)*cos(t),(15++2+20)*cos(t), (15+2+24)*cos(t),(15+2+28)*cos(t),(15+2+32)*cos(t)];
+ 
+plot3(x,y,z,'r');
+xlim([-50,50]);
+ylim([-50,50]);
+zlim([-50,50]);
+t=0:2*pi/50:2*pi;
+hold on
+ 
+z(1,:)=-7;
+%绘制第二层线圈
+y=[(15+2)*sin(t),(15+2+4)*sin(t),(15+2+8)*sin(t),(15+2+12)*sin(t),(15+2+16)*sin(t),(15++2+20)*sin(t),(15+2+24)*sin(t),(15+2+28)*sin(t),(15+2+32)*sin(t)];
+x=[(15+2)*cos(t),(15+2+4)*cos(t),(15+2+8)*cos(t),(15+2+12)*cos(t),(15+2+16)*cos(t),(15++2+20)*cos(t), (15+2+24)*cos(t),(15+2+28)*cos(t),(15+2+32)*cos(t)];
+ plot3(x,y,z,'b');
+ 
+ subplot(1,2,2)
+ %曲面图
+surfc( x1,y1,allBz1) ;
+ 
+ 
+%绘制z轴变化曲线
+ 
+z_B=0:1:30;
+ 
+for i=0:1:30
+    %18圆环计算磁场分布
+    setz=i;
+    [Bx1,By1,Bz1]=loop(22,-1,setz);[Bx2,By2,Bz2]=loop(26,-1,setz);[Bx3,By3,Bz3]=loop(30,-1,setz);
+    [Bx4,By4,Bz4]=loop(34,-1,setz);[Bx5,By5,Bz5]=loop(38,-1,setz);[Bx6,By6,Bz6]=loop(42,-1,setz);
+    [Bx7,By7,Bz7]=loop(46,-1,setz);[Bx8,By8,Bz8]=loop(50,-1,setz);[Bx9,By9,Bz9]=loop(54,-1,setz);
+    [Bx11,By11,Bz11]=loop(22,-7,setz);[Bx22,By22,Bz22]=loop(26,-7,setz);[Bx33,By33,Bz33]=loop(30,-7,setz);
+    [Bx44,By44,Bz44]=loop(34,-7,setz);[Bx55,By55,Bz55]=loop(38,-7,setz);[Bx66,By66,Bz66]=loop(42,-7,setz);
+    [Bx77,By77,Bz77]=loop(46,-7,setz);[Bx88,By88,Bz88]=loop(50,-7,setz);[Bx99,By99,Bz99]=loop(54,-7,setz);
+    %叠加原理
+    allBx1=Bx1+Bx2+Bx3+Bx4+Bx5+Bx6+Bx7+Bx8+Bx9+Bx11+Bx22+Bx33+Bx44+Bx55+Bx66+Bx77+Bx88+Bx99;
+    allBy1=By1+By2+By3+By4+By5+By6+By7+By8+By9+By11+By22+By33+By44+By55+By66+By77+By88+By99;
+    allBz1=Bz1+Bz2+Bz3+Bz4+Bz5+Bz6+Bz7+Bz8+Bz9+Bz11+Bz22+Bz33+Bz44+Bz55+Bz66+Bz77+Bz88+Bz99;
+    z_B(i+1) =(allBx1((M+1)/2,(M+1)/2)^2+allBy1((M+1)/2,(M+1)/2)^2+allBz1((M+1)/2,(M+1)/2)^2)^0.5;%z轴上的模长 
+end
+figure;
+plot(0:1:30,z_B);
+title("z轴上的磁场模大小");
+ 
+%18圆环计算磁场分布
+setz=0;
+[Bx1,By1,Bz1]=loop(22,-1,setz);[Bx2,By2,Bz2]=loop(26,-1,setz);[Bx3,By3,Bz3]=loop(30,-1,setz);
+[Bx4,By4,Bz4]=loop(34,-1,setz);[Bx5,By5,Bz5]=loop(38,-1,setz);[Bx6,By6,Bz6]=loop(42,-1,setz);
+[Bx7,By7,Bz7]=loop(46,-1,setz);[Bx8,By8,Bz8]=loop(50,-1,setz);[Bx9,By9,Bz9]=loop(54,-1,setz);
+[Bx11,By11,Bz11]=loop(22,-7,setz);[Bx22,By22,Bz22]=loop(26,-7,setz);[Bx33,By33,Bz33]=loop(30,-7,setz);
+[Bx44,By44,Bz44]=loop(34,-7,setz);[Bx55,By55,Bz55]=loop(38,-7,setz);[Bx66,By66,Bz66]=loop(42,-7,setz);
+[Bx77,By77,Bz77]=loop(46,-7,setz);[Bx88,By88,Bz88]=loop(50,-7,setz);[Bx99,By99,Bz99]=loop(54,-7,setz);
+%叠加原理
+allBx1=Bx1+Bx2+Bx3+Bx4+Bx5+Bx6+Bx7+Bx8+Bx9+Bx11+Bx22+Bx33+Bx44+Bx55+Bx66+Bx77+Bx88+Bx99;
+allBy1=By1+By2+By3+By4+By5+By6+By7+By8+By9+By11+By22+By33+By44+By55+By66+By77+By88+By99;
+allBz1=Bz1+Bz2+Bz3+Bz4+Bz5+Bz6+Bz7+Bz8+Bz9+Bz11+Bz22+Bz33+Bz44+Bz55+Bz66+Bz77+Bz88+Bz99;
+ 
+ 
+figure;
+x_B = (allBx1((M+1)/2,:).^2+allBy1((M+1)/2,(M+1)/2)^2+allBz1((M+1)/2,(M+1)/2)^2).^0.5;
+plot(x1,x_B);
+title("x轴上的磁场模大小");
+ 
+figure;
+x_ = allBx1((M+1)/2,:);
+plot(x1,x_);
+title("x轴上的分量磁场大小");
